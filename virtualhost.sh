@@ -10,7 +10,7 @@ owner=$(who am i | awk '{print $1}')
 email='webmaster@localhost'
 sitesEnable='/etc/apache2/sites-enabled/'
 sitesAvailable='/etc/apache2/sites-available/'
-userDir='/var/www/'
+userDir='/var/www/html/'
 sitesAvailabledomain=$sitesAvailable$domain.conf
 
 ### don't modify from here unless you know what you are doing ####
@@ -69,23 +69,26 @@ if [ "$action" == 'create' ]
 
 		### create virtual host rules file
 		if ! echo "
-		<VirtualHost *:80>
-			ServerAdmin $email
-			ServerName $domain
-			ServerAlias $domain
-			DocumentRoot $rootDir
-			<Directory />
-				AllowOverride All
-			</Directory>
-			<Directory $rootDir>
-				Options Indexes FollowSymLinks MultiViews
-				AllowOverride all
-				Require all granted
-			</Directory>
-			ErrorLog /var/log/apache2/$domain-error.log
-			LogLevel error
-			CustomLog /var/log/apache2/$domain-access.log combined
-		</VirtualHost>" > $sitesAvailabledomain
+<VirtualHost *:80>
+    ServerAdmin $email
+    ServerName $domain
+    ServerAlias www.$domain
+    DocumentRoot $rootDir/latest/public
+    <Directory />
+        Options FollowSymLinks
+		AllowOverride None
+    </Directory>
+    <Directory $rootDir>
+        Options FollowSymLinks MultiViews
+        # changed from None to FileInfo
+        AllowOverride All
+        Order allow,deny
+        allow from all
+    </Directory>
+    ErrorLog /var/log/apache2/$domain-error.log
+    LogLevel error
+    CustomLog /var/log/apache2/$domain-access.log combined
+</VirtualHost>" > $sitesAvailabledomain
 		then
 			echo -e $"There is an ERROR creating $domain file"
 			exit;
@@ -116,7 +119,7 @@ if [ "$action" == 'create' ]
 
 		### show the finished message
 		echo -e $"Complete! \nYou now have a new Virtual Host \nYour new host is: http://$domain \nAnd its located at $rootDir"
-		exit;
+		$userDir/letsencrypt/letsencrypt-auto --apache -d $domain
 	else
 		### check whether domain already exists
 		if ! [ -e $sitesAvailabledomain ]; then
