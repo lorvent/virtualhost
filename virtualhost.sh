@@ -12,6 +12,7 @@ sitesEnable='/etc/apache2/sites-enabled/'
 sitesAvailable='/etc/apache2/sites-available/'
 userDir='/var/www/html/'
 sitesAvailabledomain=$sitesAvailable$domain.conf
+sitesAvailabledomainLE=$sitesAvailable$domain-le-ssl.conf
 
 ### don't modify from here unless you know what you are doing ####
 
@@ -138,6 +139,9 @@ if [ "$action" == 'create' ]
 
 			### Delete virtual host rules files
 			rm $sitesAvailabledomain
+			rm $sitesAvailabledomainLE
+			$userDir/letsencrypt-auto revoke -d $domain --cert-path /etc/letsencrypt/live/$domain/cert.pem
+
 		fi
 
 		### check if directory exists or not
